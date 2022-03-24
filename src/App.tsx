@@ -7,6 +7,8 @@ import {
   VictoryChart,
   VictoryGroup,
   VictoryLegend,
+  VictoryVoronoiContainer,
+  createContainer,
   VictoryAxis
 } from "victory";
 
@@ -98,6 +100,8 @@ export default function App() {
 
   const percentiles: Array<string> = ["q50", "q99"];
   const sequences: Array<string> = ["seq-a", "seq-b"];
+  const [sequenceVisible, setSequenceVisible] = React.useState({});
+  const [percentileVisible, setPercentileVisible] = React.useState({});
 
   const buildEvents = (
     legend: string,
@@ -153,16 +157,23 @@ export default function App() {
       };
     });
   };
-  //           buildEvents("legend-sequences", sequences, "sequence")
+
+  const VictoryZoomVoronoiContainer = createContainer("zoom", "voronoi");
+
   return (
     <div>
       <VictoryChart
         width={700}
         // height={400}
-        domain={{ x: [0.5, 2], y: [0, 9] }}
+        domain={{ x: [0, 2], y: [0, 9] }}
         padding={{ left: 100, top: 50, right: 50, bottom: 50 }}
         domainPadding={{ x: [10, 10], y: [10, 10] }}
-        containerComponent={<VictoryZoomContainer />}
+        containerComponent={
+          <VictoryZoomVoronoiContainer
+            labels={({ datum }) => `${datum.name} (${datum.x}, ${datum.y})`}
+            voronoiBlacklist={["line"]}
+          />
+        }
         // events={buildEvents("legend-percentiles", percentiles, "percentile")}
       >
         <VictoryAxis />
@@ -173,12 +184,13 @@ export default function App() {
           }
           return (
             <VictoryGroup
-              key={"area-" + idx}
-              name={"area-" + idx}
+              key={"group-" + idx}
+              name={"group-" + idx}
               data={toVictoryData(s)}
               maxDomain={{ y: 10 }}
             >
               <VictoryLine
+                name="line"
                 style={{
                   data: {
                     stroke: s.color,
