@@ -1,6 +1,6 @@
 import "./styles.css";
 import React, { useEffect, useState } from "react";
-import { VictoryArea, VictoryChart, VictoryLegend, VictoryAxis } from "victory";
+import { VictoryLine, VictoryChart, VictoryLegend, VictoryAxis } from "victory";
 
 type DataPoint = {
   x: number | Date;
@@ -52,7 +52,7 @@ const toVictoryPercentileLegend = (lines: Array<Line>) => {
 };
 
 type State = {
-  hiddenSeries: Set<number>;
+  hiddenSeries: Set<string>;
 };
 
 export default function App() {
@@ -62,7 +62,7 @@ export default function App() {
       sequence: "a",
       percentile: "q50",
       name: "a-q50",
-      color: "#c33",
+      color: "pink",
       datapoints: [
         { x: 0, y: 5 },
         { x: 1, y: 8 },
@@ -73,7 +73,7 @@ export default function App() {
       sequence: "a",
       percentile: "q99",
       name: "a-q99",
-      color: "#c33",
+      color: "red",
       datapoints: [
         { x: 0, y: 6 },
         { x: 1, y: 9 },
@@ -84,27 +84,27 @@ export default function App() {
       sequence: "b",
       percentile: "q50",
       name: "b-q50",
-      color: "#33c",
+      color: "teal",
       datapoints: [
-        { x: 0, y: 3 },
-        { x: 1, y: 1 },
-        { x: 2, y: 3 }
+        { x: 0, y: 1 },
+        { x: 1, y: 4 },
+        { x: 2, y: 1 }
       ]
     },
     {
       sequence: "b",
       percentile: "q99",
       name: "b-q99",
-      color: "#33c",
+      color: "blue",
       datapoints: [
-        { x: 0, y: 4 },
-        { x: 1, y: 2 },
-        { x: 2, y: 4 }
+        { x: 0, y: 2 },
+        { x: 1, y: 5 },
+        { x: 2, y: 2 }
       ]
     }
   ]);
 
-  const percentiles = ["q50", "q99"];
+  const percentiles: Array<string> = ["q50", "q99"];
 
   const buildEvents = () => {
     return percentiles.map((percentile, idx) => {
@@ -120,37 +120,48 @@ export default function App() {
                 target: "data",
                 eventKey: "all",
                 mutation: () => {
-                  // We have the percentile and we want to show / hide all lines with that percentile
-                  state.forEach((line) => {});
+                  let hiddenSeriesLocal = state.hiddenSeries;
 
-                  if (!state.hiddenSeries.delete(idx)) {
-                    // Returns true if value was already in Set; otherwise false.
-                    // Was not already hidden => add to set
-                    state.hiddenSeries.add(idx);
-                  }
+                  // We have the percentile and we want to show / hide all lines with that percentile
+                  series.forEach((line) => {
+                    if (line.percentile === percentile) {
+                      if (!hiddenSeriesLocal.delete(line.name)) {
+                        // Returns true if value was already in Set; otherwise false.
+                        // Was not already hidden => add to set
+                        hiddenSeriesLocal.add(line.name);
+                      }
+                    }
+                  });
+
+                  // if (!state.hiddenSeries.delete(idx)) {
+                  //   // Returns true if value was already in Set; otherwise false.
+                  //   // Was not already hidden => add to set
+                  //   state.hiddenSeries.add(idx);
+                  // }
                   setState({
-                    hiddenSeries: new Set(state.hiddenSeries)
+                    // hiddenSeries: new Set(state.hiddenSeries)
+                    hiddenSeries: new Set(hiddenSeriesLocal)
                   });
                   return null;
                 }
               }
             ];
-          },
-          onMouseOver: () => {
-            return [
-              {
-                childName: ["area-" + idx],
-                target: "data",
-                eventKey: "all",
-                mutation: (props: any) => {
-                  console.log(props.data[0]);
-                  return {
-                    style: { ...props.style, strokeWidth: 4, fillOpacity: 0.5 }
-                  };
-                }
-              }
-            ];
           }
+          // onMouseOver: () => {
+          //   return [
+          //     {
+          //       childName: ["area-" + idx],
+          //       target: "data",
+          //       eventKey: "all",
+          //       mutation: (props: any) => {
+          //         console.log(props.data[0]);
+          //         return {
+          //           style: { ...props.style, strokeWidth: 4, fillOpacity: 0.5 }
+          //         };
+          //       }
+          //     }
+          //   ];
+          // }
           // onMouseOut: () => {
           //   return [
           //     {
@@ -175,18 +186,16 @@ export default function App() {
       <VictoryChart height={200} events={buildEvents()}>
         <VictoryAxis />
         {series.map((s, idx) => {
-          if (state.hiddenSeries.has(idx)) {
+          if (state.hiddenSeries.has(s.name)) {
             return undefined;
           }
           return (
-            <VictoryArea
+            <VictoryLine
               key={"area-" + idx}
               name={"area-" + idx}
               data={toVictoryData(s)}
               style={{
                 data: {
-                  fill: s.color,
-                  fillOpacity: 0.2,
                   stroke: s.color,
                   strokeWidth: 2
                 }
