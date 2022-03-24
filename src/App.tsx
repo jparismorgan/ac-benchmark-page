@@ -23,24 +23,24 @@ const toVictoryData = (line: Line) => {
   }));
 };
 
-const toVictoryLegend = (line: Line) => {
-  let i = {
-    name: line.name
-  };
-  if (line.color) {
-    return {
-      ...i,
-      symbol: {
-        fill: line.color
-      }
-    };
-  } else {
-    return i;
-  }
-};
+// const toVictoryLegend = (line: Line) => {
+//   let i = {
+//     name: line.name
+//   };
+//   if (line.color) {
+//     return {
+//       ...i,
+//       symbol: {
+//         fill: line.color
+//       }
+//     };
+//   } else {
+//     return i;
+//   }
+// };
 
-const toVictoryPercentileLegend = (lines: Array<Line>) => {
-  const a = lines.map((l) => l.percentile);
+const toVictoryLegend = (lines: Array<Line>, key: string) => {
+  const a = lines.map((l) => l[key]);
   const b = a.filter((item, index) => {
     return a.indexOf(item) === index;
   });
@@ -107,10 +107,14 @@ export default function App() {
   const percentiles: Array<string> = ["q50", "q99"];
   const sequences: Array<string> = ["sequence-a", "sequence-b"];
 
-  const buildEvents = (keyList: Array<string>, keyName: string) => {
+  const buildEvents = (
+    legend: string,
+    keyList: Array<string>,
+    keyName: string
+  ) => {
     return keyList.map((key, idx) => {
       return {
-        childName: ["legend"],
+        childName: [legend],
         target: ["data", "labels"],
         eventKey: String(idx),
         eventHandlers: {
@@ -140,8 +144,9 @@ export default function App() {
                     style: {
                       ...props.style,
                       fillOpacity:
-                        !props.style.fillOpacity ||
-                        props.style.fillOpacity === 1.0
+                        props.style &&
+                        (!props.style.fillOpacity ||
+                          props.style.fillOpacity === 1.0)
                           ? 0.5
                           : 1.0
                     }
@@ -154,14 +159,19 @@ export default function App() {
       };
     });
   };
-
+  //           buildEvents("legend-sequences", sequences, "sequence")
   return (
     <div>
       <VictoryChart
-        height={200}
-        events={buildEvents(percentiles, "percentile")}
+        width={700}
+        // height={400}
+        domain={{ x: [0.5, 2], y: [0, 9] }}
+        padding={{ left: 100, top: 50, right: 50, bottom: 50 }}
+        domainPadding={{ x: [10, 10], y: [10, 10] }}
+        events={buildEvents("legend-percentiles", percentiles, "percentile")}
       >
         <VictoryAxis />
+        <VictoryAxis dependentAxis />
         {series.map((s, idx) => {
           if (state.hiddenSeries.has(s.name)) {
             return undefined;
@@ -171,6 +181,8 @@ export default function App() {
               key={"area-" + idx}
               name={"area-" + idx}
               data={toVictoryData(s)}
+              maxDomain={{ y: 10 }}
+              // domainPadding={{ y: [0, 20] }}
               style={{
                 data: {
                   stroke: s.color,
@@ -192,10 +204,17 @@ export default function App() {
           height={90}
         /> */}
         <VictoryLegend
-          name={"legend"}
-          data={toVictoryPercentileLegend(series)}
+          name={"legend-percentiles"}
+          data={toVictoryLegend(series, "percentile")}
           height={90}
+          y={50}
         />
+        {/* <VictoryLegend
+          name={"legend-sequences"}
+          data={toVictoryLegend(series, "sequence")}
+          height={90}
+          y={100}
+        /> */}
       </VictoryChart>
     </div>
   );
