@@ -107,8 +107,8 @@ export default function App() {
   const percentiles: Array<string> = ["q50", "q99"];
   const sequences: Array<string> = ["sequence-a", "sequence-b"];
 
-  const buildEvents = () => {
-    return percentiles.map((percentile, idx) => {
+  const buildEvents = (keyList: Array<string>, keyName: string) => {
+    return keyList.map((key, idx) => {
       return {
         childName: ["legend"],
         target: ["data", "labels"],
@@ -117,15 +117,15 @@ export default function App() {
           onClick: () => {
             return [
               {
-                childName: "", // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
+                childName: "legend", // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
                 target: "data",
-                eventKey: "all",
-                mutation: () => {
+                eventKey: String(idx), // "all",
+                mutation: (props: any) => {
                   let hiddenSeriesLocal = state.hiddenSeries;
 
                   // We have the percentile and we want to show / hide all lines with that percentile
                   series.forEach((line) => {
-                    if (line["percentile"] === percentile) {
+                    if (line[keyName] === key) {
                       if (!hiddenSeriesLocal.delete(line.name)) {
                         // Returns true if value was already in Set; otherwise false.
                         // Was not already hidden => add to set
@@ -136,7 +136,16 @@ export default function App() {
                   setState({
                     hiddenSeries: new Set(hiddenSeriesLocal)
                   });
-                  return null;
+                  return {
+                    style: {
+                      ...props.style,
+                      fillOpacity:
+                        !props.style.fillOpacity ||
+                        props.style.fillOpacity === 1.0
+                          ? 0.5
+                          : 1.0
+                    }
+                  };
                 }
               }
             ];
@@ -146,11 +155,12 @@ export default function App() {
     });
   };
 
-  console.log(buildEvents());
-
   return (
     <div>
-      <VictoryChart height={200} events={buildEvents()}>
+      <VictoryChart
+        height={200}
+        events={buildEvents(percentiles, "percentile")}
+      >
         <VictoryAxis />
         {series.map((s, idx) => {
           if (state.hiddenSeries.has(s.name)) {
