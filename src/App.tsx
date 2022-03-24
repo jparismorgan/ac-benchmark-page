@@ -1,6 +1,14 @@
 import "./styles.css";
 import React, { useEffect, useState } from "react";
-import { VictoryLine, VictoryChart, VictoryLegend, VictoryAxis } from "victory";
+import {
+  VictoryLine,
+  VictoryScatter,
+  VictoryZoomContainer,
+  VictoryChart,
+  VictoryGroup,
+  VictoryLegend,
+  VictoryAxis
+} from "victory";
 
 type DataPoint = {
   x: number | Date;
@@ -23,22 +31,6 @@ const toVictoryData = (line: Line) => {
   }));
 };
 
-// const toVictoryLegend = (line: Line) => {
-//   let i = {
-//     name: line.name
-//   };
-//   if (line.color) {
-//     return {
-//       ...i,
-//       symbol: {
-//         fill: line.color
-//       }
-//     };
-//   } else {
-//     return i;
-//   }
-// };
-
 const toVictoryLegend = (lines: Array<Line>, key: string) => {
   const a = lines.map((l) => l[key]);
   const b = a.filter((item, index) => {
@@ -59,9 +51,9 @@ export default function App() {
   const [state, setState] = useState<State>({ hiddenSeries: new Set() });
   const [series, setSeries] = useState<Array<Line>>([
     {
-      sequence: "sequence-a",
+      sequence: "seq-a",
       percentile: "q50",
-      name: "sequence-a-q50",
+      name: "seq-a-q50",
       color: "pink",
       datapoints: [
         { x: 0, y: 5 },
@@ -70,9 +62,9 @@ export default function App() {
       ]
     },
     {
-      sequence: "sequence-a",
+      sequence: "seq-a",
       percentile: "q99",
-      name: "sequence-a-q99",
+      name: "seq-a-q99",
       color: "red",
       datapoints: [
         { x: 0, y: 6 },
@@ -81,9 +73,9 @@ export default function App() {
       ]
     },
     {
-      sequence: "sequence-b",
+      sequence: "seq-b",
       percentile: "q50",
-      name: "sequence-b-q50",
+      name: "seq-b-q50",
       color: "teal",
       datapoints: [
         { x: 0, y: 1 },
@@ -92,9 +84,9 @@ export default function App() {
       ]
     },
     {
-      sequence: "sequence-b",
+      sequence: "seq-b",
       percentile: "q99",
-      name: "sequence-b-q99",
+      name: "seq-b-q99",
       color: "blue",
       datapoints: [
         { x: 0, y: 2 },
@@ -105,7 +97,7 @@ export default function App() {
   ]);
 
   const percentiles: Array<string> = ["q50", "q99"];
-  const sequences: Array<string> = ["sequence-a", "sequence-b"];
+  const sequences: Array<string> = ["seq-a", "seq-b"];
 
   const buildEvents = (
     legend: string,
@@ -121,10 +113,11 @@ export default function App() {
           onClick: () => {
             return [
               {
-                childName: "legend", // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
+                childName: legend, // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
                 target: "data",
                 eventKey: String(idx), // "all",
                 mutation: (props: any) => {
+                  console.log(props);
                   let hiddenSeriesLocal = state.hiddenSeries;
 
                   // We have the percentile and we want to show / hide all lines with that percentile
@@ -140,6 +133,7 @@ export default function App() {
                   setState({
                     hiddenSeries: new Set(hiddenSeriesLocal)
                   });
+                  console.log(props, props.style.fillOpacity);
                   return {
                     style: {
                       ...props.style,
@@ -168,7 +162,8 @@ export default function App() {
         domain={{ x: [0.5, 2], y: [0, 9] }}
         padding={{ left: 100, top: 50, right: 50, bottom: 50 }}
         domainPadding={{ x: [10, 10], y: [10, 10] }}
-        events={buildEvents("legend-percentiles", percentiles, "percentile")}
+        containerComponent={<VictoryZoomContainer />}
+        // events={buildEvents("legend-percentiles", percentiles, "percentile")}
       >
         <VictoryAxis />
         <VictoryAxis dependentAxis />
@@ -177,44 +172,46 @@ export default function App() {
             return undefined;
           }
           return (
-            <VictoryLine
+            <VictoryGroup
               key={"area-" + idx}
               name={"area-" + idx}
               data={toVictoryData(s)}
               maxDomain={{ y: 10 }}
-              // domainPadding={{ y: [0, 20] }}
-              style={{
-                data: {
-                  stroke: s.color,
-                  strokeWidth: 2
-                }
-              }}
-            />
+            >
+              <VictoryLine
+                style={{
+                  data: {
+                    stroke: s.color,
+                    strokeWidth: 2
+                  }
+                }}
+              />
+              <VictoryScatter
+                style={{
+                  data: {
+                    stroke: s.color,
+                    strokeWidth: 2
+                  }
+                }}
+              />
+            </VictoryGroup>
           );
         })}
-        {/* <VictoryLegend
-          name={"legend"}
-          data={series.map((s, idx) => {
-            const item = toVictoryLegend(s);
-            if (state.hiddenSeries.has(idx)) {
-              return { ...item, symbol: { fill: "#999" } };
-            }
-            return item;
-          })}
-          height={90}
-        /> */}
         <VictoryLegend
           name={"legend-percentiles"}
           data={toVictoryLegend(series, "percentile")}
+          // colorScale={[ "navy", "blue", "cyan" ]}
           height={90}
           y={50}
+          events={buildEvents("legend-percentiles", percentiles, "percentile")}
         />
-        {/* <VictoryLegend
+        <VictoryLegend
           name={"legend-sequences"}
           data={toVictoryLegend(series, "sequence")}
           height={90}
-          y={100}
-        /> */}
+          y={150}
+          events={buildEvents("legend-sequences", sequences, "sequence")}
+        />
       </VictoryChart>
     </div>
   );
