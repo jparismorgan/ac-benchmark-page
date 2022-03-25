@@ -39,11 +39,13 @@ const percentiles: Array<string> = ["q99", "q50"];
 const sequences: Array<string> = ["seq-a", "seq-b"];
 
 const toVictoryLegend = (
+  hiddenKeys: Set<string>,
   lines: Array<Line>,
   key: string,
   colors: Array<string>
 ) => {
   const vals = key === "percentile" ? percentiles : sequences;
+  console.log(vals);
   // const a = lines.map((l) => l[key]);
   // const b = a.filter((item, index) => {
   //   return a.indexOf(item) === index;
@@ -54,7 +56,11 @@ const toVictoryLegend = (
     i++;
     return {
       name: p,
-      symbol: { fill: colors[i % 2], type: "square" }
+      symbol: {
+        fill: colors[i % 2],
+        // type: hiddenKeys.has(p) ? "square" : "circle",
+        fillOpacity: hiddenKeys.has(p) ? 0.5 : 1.0
+      }
     };
   });
 };
@@ -70,6 +76,7 @@ export default function App() {
   const [hiddenSequence, setHiddenSequence] = useState<State>({
     hiddenSeries: new Set()
   });
+  const [hiddenKeys, setHiddenKeys] = useState<Set<string>>(new Set());
   const [series, setSeries] = useState<Array<Line>>([
     {
       sequence: "seq-a",
@@ -147,31 +154,39 @@ export default function App() {
                 target: "data",
                 // eventKey: String(startingIndex + idx), // "all",
                 mutation: (props: any) => {
-                  // console.log(keyName, key, startingIndex + idx);
-                  // let hiddenSeriesLocal =
-                  //   keyName === "sequence"
-                  //     ? hiddenSequence.hiddenSeries
-                  //     : hiddenPercentile.hiddenSeries;
+                  console.log(keyName, key, startingIndex + idx);
+                  let hiddenSeriesLocal =
+                    keyName === "sequence"
+                      ? hiddenSequence.hiddenSeries
+                      : hiddenPercentile.hiddenSeries;
 
-                  // // We have the percentile and we want to show / hide all lines with that percentile
-                  // series.forEach((line) => {
-                  //   if (line[keyName] === key) {
-                  //     if (!hiddenSeriesLocal.delete(line.name)) {
-                  //       // Returns true if value was already in Set; otherwise false.
-                  //       // Was not already hidden => add to set
-                  //       hiddenSeriesLocal.add(line.name);
-                  //     }
-                  //   }
-                  // });
-                  // if (keyName === "sequence") {
-                  //   setHiddenSequence({
-                  //     hiddenSeries: new Set(hiddenSeriesLocal)
-                  //   });
-                  // } else {
-                  //   setHiddenPercentile({
-                  //     hiddenSeries: new Set(hiddenSeriesLocal)
-                  //   });
-                  // }
+                  // We have the percentile and we want to show / hide all lines with that percentile
+                  series.forEach((line) => {
+                    if (line[keyName] === key) {
+                      if (!hiddenSeriesLocal.delete(line.name)) {
+                        // Returns true if value was already in Set; otherwise false.
+                        // Was not already hidden => add to set
+                        hiddenSeriesLocal.add(line.name);
+                      }
+                    }
+                  });
+                  if (keyName === "sequence") {
+                    setHiddenSequence({
+                      hiddenSeries: new Set(hiddenSeriesLocal)
+                    });
+                  } else {
+                    setHiddenPercentile({
+                      hiddenSeries: new Set(hiddenSeriesLocal)
+                    });
+                  }
+                  const hiddenKeysLocal = hiddenKeys;
+                  let hideKey = false;
+                  if (!hiddenKeysLocal.delete(key)) {
+                    // Was not already hidden => add to set
+                    hiddenKeysLocal.add(key);
+                    setHiddenKeys(hiddenKeysLocal);
+                    hideKey = true;
+                  }
                   const s = {
                     style: {
                       ...props.style,
@@ -180,12 +195,13 @@ export default function App() {
                       //   (!props.style.fill || props.style.fill === "#525252")
                       //     ? "blue"
                       //     : "#525252",
-                      fillOpacity:
-                        props.style &&
-                        (!props.style.fillOpacity ||
-                          props.style.fillOpacity === 1.0)
-                          ? 0.5
-                          : 1.0
+                      fillOpacity: hideKey ? 0.5 : 1.0
+                      // fillOpacity:
+                      //   props.style &&
+                      //   (!props.style.fillOpacity ||
+                      //     props.style.fillOpacity === 1.0)
+                      //     ? 0.5
+                      //     : 1.0
                     }
                   };
                   return s;
@@ -313,7 +329,10 @@ export default function App() {
         })}
         <VictoryLegend
           name={"legend-percentiles"}
-          data={toVictoryLegend(series, "percentile", ["navy", "blue"])}
+          data={toVictoryLegend(hiddenKeys, series, "percentile", [
+            "navy",
+            "blue"
+          ])}
           // colorScale={[ "navy", "blue", "cyan" ]}
           height={90}
           y={50}
@@ -326,7 +345,10 @@ export default function App() {
         />
         <VictoryLegend
           name={"legend-sequences"}
-          data={toVictoryLegend(series, "sequence", ["red", "green"])}
+          data={toVictoryLegend(hiddenKeys, series, "sequence", [
+            "red",
+            "green"
+          ])}
           height={90}
           y={150}
           events={buildEvents("legend-sequences", sequences, "sequence", 0)}
