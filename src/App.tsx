@@ -33,14 +33,19 @@ const toVictoryData = (line: Line) => {
   }));
 };
 
+// const colors = ["brown", "black", "grey"];
+
+let i = 0;
 const toVictoryLegend = (lines: Array<Line>, key: string) => {
   const a = lines.map((l) => l[key]);
   const b = a.filter((item, index) => {
     return a.indexOf(item) === index;
   });
   return b.map((p) => {
+    i++;
     return {
       name: p
+      // symbol: { fill: colors[i % 4] }
     };
   });
 };
@@ -50,7 +55,12 @@ type State = {
 };
 
 export default function App() {
-  const [state, setState] = useState<State>({ hiddenSeries: new Set() });
+  const [hiddenPercentile, setHiddenPercentile] = useState<State>({
+    hiddenSeries: new Set()
+  });
+  const [hiddenSequence, setHiddenSequence] = useState<State>({
+    hiddenSeries: new Set()
+  });
   const [series, setSeries] = useState<Array<Line>>([
     {
       sequence: "seq-a",
@@ -100,8 +110,6 @@ export default function App() {
 
   const percentiles: Array<string> = ["q50", "q99"];
   const sequences: Array<string> = ["seq-a", "seq-b"];
-  const [sequenceVisible, setSequenceVisible] = React.useState({});
-  const [percentileVisible, setPercentileVisible] = React.useState({});
 
   const buildEvents = (
     legend: string,
@@ -121,10 +129,13 @@ export default function App() {
                 target: "data",
                 eventKey: String(idx), // "all",
                 mutation: (props: any) => {
-                  console.log(props);
-                  let hiddenSeriesLocal = state.hiddenSeries;
+                  let hiddenSeriesLocal =
+                    keyName === "sequence"
+                      ? hiddenSequence.hiddenSeries
+                      : hiddenPercentile.hiddenSeries;
 
                   // We have the percentile and we want to show / hide all lines with that percentile
+                  console.log("key", key);
                   series.forEach((line) => {
                     if (line[keyName] === key) {
                       if (!hiddenSeriesLocal.delete(line.name)) {
@@ -134,13 +145,29 @@ export default function App() {
                       }
                     }
                   });
-                  setState({
-                    hiddenSeries: new Set(hiddenSeriesLocal)
-                  });
-                  console.log(props, props.style.fillOpacity);
-                  return {
+                  if (keyName === "sequence") {
+                    setHiddenSequence({
+                      hiddenSeries: new Set(hiddenSeriesLocal)
+                    });
+                  } else {
+                    setHiddenPercentile({
+                      hiddenSeries: new Set(hiddenSeriesLocal)
+                    });
+                  }
+                  console.log(
+                    props,
+                    props.style,
+                    props.style.fill,
+                    props.style.fillOpacity
+                  );
+                  const s = {
                     style: {
                       ...props.style,
+                      fill:
+                        props.style &&
+                        (!props.style.fill || props.style.fill === "#525252")
+                          ? "blue"
+                          : "#525252",
                       fillOpacity:
                         props.style &&
                         (!props.style.fillOpacity ||
@@ -149,6 +176,25 @@ export default function App() {
                           : 1.0
                     }
                   };
+                  console.log(s);
+                  return s;
+                  // return {
+                  //   style: {
+                  //     ...props.style,
+                  //     fill:
+                  //       props.style &&
+                  //       (!props.style.fill ||
+                  //         props.style.fill === '#525252')
+                  //         ? 'blue'
+                  //         : '#525252',
+                  //     fillOpacity:
+                  //       props.style &&
+                  //       (!props.style.fillOpacity ||
+                  //         props.style.fillOpacity === 1.0)
+                  //         ? 0.5
+                  //         : 1.0
+                  //   }
+                  // };
                 }
               }
             ];
@@ -179,7 +225,10 @@ export default function App() {
         <VictoryAxis />
         <VictoryAxis dependentAxis />
         {series.map((s, idx) => {
-          if (state.hiddenSeries.has(s.name)) {
+          if (
+            hiddenPercentile.hiddenSeries.has(s.name) ||
+            hiddenSequence.hiddenSeries.has(s.name)
+          ) {
             return undefined;
           }
           return (
