@@ -38,7 +38,6 @@ const toVictoryData = (line: Line) => {
 const percentiles: Array<string> = ["q99", "q50"];
 const sequences: Array<string> = ["seq-a", "seq-b"];
 
-let i = 0;
 const toVictoryLegend = (
   lines: Array<Line>,
   key: string,
@@ -50,6 +49,7 @@ const toVictoryLegend = (
   //   return a.indexOf(item) === index;
   // });
   // return b.map((p) => {
+  let i = 0;
   return vals.map((p) => {
     i++;
     return {
@@ -117,31 +117,43 @@ export default function App() {
     }
   ]);
 
+  const buildAllEvents = () => {
+    const e = buildEvents(
+      "legend-percentiles",
+      percentiles,
+      "percentile",
+      0
+    ).concat(buildEvents("legend-sequences", sequences, "sequence", 0));
+    console.log(e);
+    return e;
+  };
+
   const buildEvents = (
     legend: string,
     keyList: Array<string>,
-    keyName: string
+    keyName: string,
+    startingIndex: number
   ) => {
     return keyList.map((key, idx) => {
       return {
-        childName: "all", // [legend],
+        childName: [legend],
         target: ["data", "labels"],
-        eventKey: String(idx),
+        eventKey: String(startingIndex + idx),
         eventHandlers: {
           onClick: () => {
             return [
               {
-                childName: legend, // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
+                childName: [legend], // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
                 target: "data",
-                eventKey: String(idx), // "all",
+                eventKey: String(startingIndex + idx), // "all",
                 mutation: (props: any) => {
+                  console.log(keyName, key, startingIndex + idx);
                   let hiddenSeriesLocal =
                     keyName === "sequence"
                       ? hiddenSequence.hiddenSeries
                       : hiddenPercentile.hiddenSeries;
 
                   // We have the percentile and we want to show / hide all lines with that percentile
-                  console.log("key", key, props);
                   series.forEach((line) => {
                     if (line[keyName] === key) {
                       if (!hiddenSeriesLocal.delete(line.name)) {
@@ -176,27 +188,7 @@ export default function App() {
                           : 1.0
                     }
                   };
-                  console.log(
-                    props,
-                    props.style,
-                    props.style ? props.style.fill : undefined,
-                    props.style ? props.style.fillOpacity : undefined,
-                    s
-                  );
-                  // console.log(s);
-                  // return s;
-                  // return {
-                  //   style: {
-                  //     ...props.style,
-                  //     size: 10,
-                  //     strokeWidth: 4,
-                  //     fillOpacity: 0.5
-                  //   }
-                  // };
-                  const fill = props.style.fill;
-                  return fill === "tomato"
-                    ? null
-                    : { style: { fill: "tomato", type: "circle" } };
+                  return s;
                 }
               }
             ];
@@ -205,17 +197,14 @@ export default function App() {
             return [
               {
                 childName: legend, // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
-                target: "lebels",
-                eventKey: String(idx), // "all",
+                target: "data",
+                eventKey: String(startingIndex + idx), // "all",
                 mutation: (props: any) => {
-                  console.log("mouse over", props);
+                  console.log("mouseOver", props);
                   return {
-                    ...props.style,
                     size: 10,
-                    symbol: "square",
-                    type: "square",
                     style: {
-                      type: "square"
+                      ...props.style
                     }
                   };
                 }
@@ -227,12 +216,13 @@ export default function App() {
               {
                 childName: legend, // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
                 target: "data",
-                eventKey: String(idx), // "all",
+                eventKey: String(startingIndex + idx), // "all",
                 mutation: (props: any) => {
-                  console.log("mouse out", props);
                   return {
-                    ...props.style,
-                    size: 5
+                    size: 5,
+                    style: {
+                      ...props.style
+                    }
                   };
                 }
               }
@@ -259,7 +249,7 @@ export default function App() {
             voronoiBlacklist={["line"]}
           />
         }
-        // events={buildEvents("legend-percentiles", percentiles, "percentile")}
+        // events={buildAllEvents()}
       >
         <VictoryAxis />
         <VictoryAxis dependentAxis />
@@ -268,7 +258,14 @@ export default function App() {
             hiddenPercentile.hiddenSeries.has(s.name) ||
             hiddenSequence.hiddenSeries.has(s.name)
           ) {
-            return undefined;
+            return (
+              <VictoryGroup
+                key={"group-" + idx}
+                name={"group-" + idx}
+                data={toVictoryData(s)}
+                maxDomain={{ y: 10 }}
+              ></VictoryGroup>
+            );
           }
           return (
             <VictoryGroup
@@ -299,18 +296,23 @@ export default function App() {
         })}
         <VictoryLegend
           name={"legend-percentiles"}
-          data={toVictoryLegend(series, "percentile", ["navy", "blue", "cyan"])}
+          data={toVictoryLegend(series, "percentile", ["navy", "blue"])}
           // colorScale={[ "navy", "blue", "cyan" ]}
           height={90}
           y={50}
-          events={buildEvents("legend-percentiles", percentiles, "percentile")}
+          events={buildEvents(
+            "legend-percentiles",
+            percentiles,
+            "percentile",
+            0
+          )}
         />
         <VictoryLegend
           name={"legend-sequences"}
-          data={toVictoryLegend(series, "sequence", ["red", "pink", "yellow"])}
+          data={toVictoryLegend(series, "sequence", ["red", "green"])}
           height={90}
           y={150}
-          events={buildEvents("legend-sequences", sequences, "sequence")}
+          events={buildEvents("legend-sequences", sequences, "sequence", 0)}
         />
       </VictoryChart>
     </div>
