@@ -143,35 +143,35 @@ export default function App() {
           onClick: () => {
             return [
               {
-                childName: [legend], // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
+                // childName: [legend], // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
                 target: "data",
-                eventKey: String(startingIndex + idx), // "all",
+                // eventKey: String(startingIndex + idx), // "all",
                 mutation: (props: any) => {
-                  console.log(keyName, key, startingIndex + idx);
-                  let hiddenSeriesLocal =
-                    keyName === "sequence"
-                      ? hiddenSequence.hiddenSeries
-                      : hiddenPercentile.hiddenSeries;
+                  // console.log(keyName, key, startingIndex + idx);
+                  // let hiddenSeriesLocal =
+                  //   keyName === "sequence"
+                  //     ? hiddenSequence.hiddenSeries
+                  //     : hiddenPercentile.hiddenSeries;
 
-                  // We have the percentile and we want to show / hide all lines with that percentile
-                  series.forEach((line) => {
-                    if (line[keyName] === key) {
-                      if (!hiddenSeriesLocal.delete(line.name)) {
-                        // Returns true if value was already in Set; otherwise false.
-                        // Was not already hidden => add to set
-                        hiddenSeriesLocal.add(line.name);
-                      }
-                    }
-                  });
-                  if (keyName === "sequence") {
-                    setHiddenSequence({
-                      hiddenSeries: new Set(hiddenSeriesLocal)
-                    });
-                  } else {
-                    setHiddenPercentile({
-                      hiddenSeries: new Set(hiddenSeriesLocal)
-                    });
-                  }
+                  // // We have the percentile and we want to show / hide all lines with that percentile
+                  // series.forEach((line) => {
+                  //   if (line[keyName] === key) {
+                  //     if (!hiddenSeriesLocal.delete(line.name)) {
+                  //       // Returns true if value was already in Set; otherwise false.
+                  //       // Was not already hidden => add to set
+                  //       hiddenSeriesLocal.add(line.name);
+                  //     }
+                  //   }
+                  // });
+                  // if (keyName === "sequence") {
+                  //   setHiddenSequence({
+                  //     hiddenSeries: new Set(hiddenSeriesLocal)
+                  //   });
+                  // } else {
+                  //   setHiddenPercentile({
+                  //     hiddenSeries: new Set(hiddenSeriesLocal)
+                  //   });
+                  // }
                   const s = {
                     style: {
                       ...props.style,
@@ -192,42 +192,59 @@ export default function App() {
                 }
               }
             ];
-          },
-          onMouseOver: () => {
-            return [
-              {
-                childName: legend, // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
-                target: "data",
-                eventKey: String(startingIndex + idx), // "all",
-                mutation: (props: any) => {
-                  console.log("mouseOver", props);
-                  return {
-                    size: 10,
-                    style: {
-                      ...props.style
-                    }
-                  };
-                }
-              }
-            ];
-          },
-          onMouseOut: () => {
-            return [
-              {
-                childName: legend, // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
-                target: "data",
-                eventKey: String(startingIndex + idx), // "all",
-                mutation: (props: any) => {
-                  return {
-                    size: 5,
-                    style: {
-                      ...props.style
-                    }
-                  };
-                }
-              }
-            ];
           }
+          // onMouseOver: () => {
+          //   return [
+          //     {
+          //       // childName: legend, // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
+          //       target: "data",
+          //       // eventKey: String(startingIndex + idx), // "all",
+          //       mutation: (props: any) => {
+          //         console.log("mouseOver", props);
+          //         const s = {
+          //           style: {
+          //             ...props.style,
+          //             // fill:
+          //             //   props.style &&
+          //             //   (!props.style.fill || props.style.fill === "#525252")
+          //             //     ? "blue"
+          //             //     : "#525252",
+          //             fillOpacity:
+          //               props.style &&
+          //               (!props.style.fillOpacity ||
+          //                 props.style.fillOpacity === 1.0)
+          //                 ? 0.5
+          //                 : 1.0
+          //           }
+          //         };
+          //         return s;
+          //         // return {
+          //         //   size: 10,
+          //         //   style: {
+          //         //     ...props.style
+          //         //   }
+          //         // };
+          //       }
+          //     }
+          //   ];
+          // },
+          // onMouseOut: () => {
+          //   return [
+          //     {
+          //       // childName: legend, // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
+          //       target: "data",
+          //       // eventKey: String(startingIndex + idx), // "all",
+          //       mutation: (props: any) => {
+          //         return {
+          //           size: 5,
+          //           style: {
+          //             ...props.style
+          //           }
+          //         };
+          //       }
+          //     }
+          //   ];
+          // }
         }
       };
     });
