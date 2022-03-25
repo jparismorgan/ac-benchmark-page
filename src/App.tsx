@@ -35,17 +35,26 @@ const toVictoryData = (line: Line) => {
 
 // const colors = ["brown", "black", "grey"];
 
+const percentiles: Array<string> = ["q99", "q50"];
+const sequences: Array<string> = ["seq-a", "seq-b"];
+
 let i = 0;
-const toVictoryLegend = (lines: Array<Line>, key: string) => {
-  const a = lines.map((l) => l[key]);
-  const b = a.filter((item, index) => {
-    return a.indexOf(item) === index;
-  });
-  return b.map((p) => {
+const toVictoryLegend = (
+  lines: Array<Line>,
+  key: string,
+  colors: Array<string>
+) => {
+  const vals = key === "percentile" ? percentiles : sequences;
+  // const a = lines.map((l) => l[key]);
+  // const b = a.filter((item, index) => {
+  //   return a.indexOf(item) === index;
+  // });
+  // return b.map((p) => {
+  return vals.map((p) => {
     i++;
     return {
-      name: p
-      // symbol: { fill: colors[i % 4] }
+      name: p,
+      symbol: { fill: colors[i % 2], type: "square" }
     };
   });
 };
@@ -108,9 +117,6 @@ export default function App() {
     }
   ]);
 
-  const percentiles: Array<string> = ["q50", "q99"];
-  const sequences: Array<string> = ["seq-a", "seq-b"];
-
   const buildEvents = (
     legend: string,
     keyList: Array<string>,
@@ -118,7 +124,7 @@ export default function App() {
   ) => {
     return keyList.map((key, idx) => {
       return {
-        childName: [legend],
+        childName: "all", // [legend],
         target: ["data", "labels"],
         eventKey: String(idx),
         eventHandlers: {
@@ -135,7 +141,7 @@ export default function App() {
                       : hiddenPercentile.hiddenSeries;
 
                   // We have the percentile and we want to show / hide all lines with that percentile
-                  console.log("key", key);
+                  console.log("key", key, props);
                   series.forEach((line) => {
                     if (line[keyName] === key) {
                       if (!hiddenSeriesLocal.delete(line.name)) {
@@ -154,20 +160,14 @@ export default function App() {
                       hiddenSeries: new Set(hiddenSeriesLocal)
                     });
                   }
-                  console.log(
-                    props,
-                    props.style,
-                    props.style.fill,
-                    props.style.fillOpacity
-                  );
                   const s = {
                     style: {
                       ...props.style,
-                      fill:
-                        props.style &&
-                        (!props.style.fill || props.style.fill === "#525252")
-                          ? "blue"
-                          : "#525252",
+                      // fill:
+                      //   props.style &&
+                      //   (!props.style.fill || props.style.fill === "#525252")
+                      //     ? "blue"
+                      //     : "#525252",
                       fillOpacity:
                         props.style &&
                         (!props.style.fillOpacity ||
@@ -176,25 +176,64 @@ export default function App() {
                           : 1.0
                     }
                   };
-                  console.log(s);
-                  return s;
+                  console.log(
+                    props,
+                    props.style,
+                    props.style ? props.style.fill : undefined,
+                    props.style ? props.style.fillOpacity : undefined,
+                    s
+                  );
+                  // console.log(s);
+                  // return s;
                   // return {
                   //   style: {
                   //     ...props.style,
-                  //     fill:
-                  //       props.style &&
-                  //       (!props.style.fill ||
-                  //         props.style.fill === '#525252')
-                  //         ? 'blue'
-                  //         : '#525252',
-                  //     fillOpacity:
-                  //       props.style &&
-                  //       (!props.style.fillOpacity ||
-                  //         props.style.fillOpacity === 1.0)
-                  //         ? 0.5
-                  //         : 1.0
+                  //     size: 10,
+                  //     strokeWidth: 4,
+                  //     fillOpacity: 0.5
                   //   }
                   // };
+                  const fill = props.style.fill;
+                  return fill === "tomato"
+                    ? null
+                    : { style: { fill: "tomato", type: "circle" } };
+                }
+              }
+            ];
+          },
+          onMouseOver: () => {
+            return [
+              {
+                childName: legend, // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
+                target: "lebels",
+                eventKey: String(idx), // "all",
+                mutation: (props: any) => {
+                  console.log("mouse over", props);
+                  return {
+                    ...props.style,
+                    size: 10,
+                    symbol: "square",
+                    type: "square",
+                    style: {
+                      type: "square"
+                    }
+                  };
+                }
+              }
+            ];
+          },
+          onMouseOut: () => {
+            return [
+              {
+                childName: legend, // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
+                target: "data",
+                eventKey: String(idx), // "all",
+                mutation: (props: any) => {
+                  console.log("mouse out", props);
+                  return {
+                    ...props.style,
+                    size: 5
+                  };
                 }
               }
             ];
@@ -260,7 +299,7 @@ export default function App() {
         })}
         <VictoryLegend
           name={"legend-percentiles"}
-          data={toVictoryLegend(series, "percentile")}
+          data={toVictoryLegend(series, "percentile", ["navy", "blue", "cyan"])}
           // colorScale={[ "navy", "blue", "cyan" ]}
           height={90}
           y={50}
@@ -268,7 +307,7 @@ export default function App() {
         />
         <VictoryLegend
           name={"legend-sequences"}
-          data={toVictoryLegend(series, "sequence")}
+          data={toVictoryLegend(series, "sequence", ["red", "pink", "yellow"])}
           height={90}
           y={150}
           events={buildEvents("legend-sequences", sequences, "sequence")}
