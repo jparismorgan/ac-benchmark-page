@@ -204,63 +204,12 @@ export default function App() {
                       //     : 1.0
                     }
                   };
-                  return s;
+                  // return s;
+                  return null;
                 }
               }
             ];
           }
-          // onMouseOver: () => {
-          //   return [
-          //     {
-          //       // childName: legend, // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
-          //       target: "data",
-          //       // eventKey: String(startingIndex + idx), // "all",
-          //       mutation: (props: any) => {
-          //         console.log("mouseOver", props);
-          //         const s = {
-          //           style: {
-          //             ...props.style,
-          //             // fill:
-          //             //   props.style &&
-          //             //   (!props.style.fill || props.style.fill === "#525252")
-          //             //     ? "blue"
-          //             //     : "#525252",
-          //             fillOpacity:
-          //               props.style &&
-          //               (!props.style.fillOpacity ||
-          //                 props.style.fillOpacity === 1.0)
-          //                 ? 0.5
-          //                 : 1.0
-          //           }
-          //         };
-          //         return s;
-          //         // return {
-          //         //   size: 10,
-          //         //   style: {
-          //         //     ...props.style
-          //         //   }
-          //         // };
-          //       }
-          //     }
-          //   ];
-          // },
-          // onMouseOut: () => {
-          //   return [
-          //     {
-          //       // childName: legend, // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
-          //       target: "data",
-          //       // eventKey: String(startingIndex + idx), // "all",
-          //       mutation: (props: any) => {
-          //         return {
-          //           size: 5,
-          //           style: {
-          //             ...props.style
-          //           }
-          //         };
-          //       }
-          //     }
-          //   ];
-          // }
         }
       };
     });
@@ -282,7 +231,6 @@ export default function App() {
             voronoiBlacklist={["line"]}
           />
         }
-        // events={buildAllEvents()}
       >
         <VictoryAxis />
         <VictoryAxis dependentAxis />
@@ -333,7 +281,6 @@ export default function App() {
             "navy",
             "blue"
           ])}
-          // colorScale={[ "navy", "blue", "cyan" ]}
           height={90}
           y={50}
           events={buildEvents(
