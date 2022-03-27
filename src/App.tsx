@@ -117,14 +117,13 @@ export default function App() {
   const buildEvents = (
     legend: string,
     keyList: Array<string>,
-    keyName: string,
-    startingIndex: number
+    keyName: string
   ) => {
     return keyList.map((key, idx) => {
       return {
         childName: [legend],
         target: ["data", "labels"],
-        eventKey: String(startingIndex + idx),
+        eventKey: String(idx),
         eventHandlers: {
           onClick: () => {
             return [
@@ -195,14 +194,7 @@ export default function App() {
             hiddenPercentile.hiddenSeries.has(s.name) ||
             hiddenSequence.hiddenSeries.has(s.name)
           ) {
-            return (
-              <VictoryGroup
-                key={"group-" + idx}
-                name={"group-" + idx}
-                data={toVictoryData(s)}
-                maxDomain={{ y: 10 }}
-              ></VictoryGroup>
-            );
+            return undefined;
           }
           return (
             <VictoryGroup
@@ -239,12 +231,7 @@ export default function App() {
           ])}
           height={90}
           y={50}
-          events={buildEvents(
-            "legend-percentiles",
-            percentiles,
-            "percentile",
-            0
-          )}
+          events={buildEvents("legend-percentiles", percentiles, "percentile")}
         />
         <VictoryLegend
           name={"legend-sequences"}
@@ -254,7 +241,7 @@ export default function App() {
           ])}
           height={90}
           y={150}
-          events={buildEvents("legend-sequences", sequences, "sequence", 0)}
+          events={buildEvents("legend-sequences", sequences, "sequence")}
         />
       </VictoryChart>
     </div>
