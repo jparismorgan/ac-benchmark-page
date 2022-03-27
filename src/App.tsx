@@ -1,13 +1,11 @@
 import "./styles.css";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   VictoryLine,
   VictoryScatter,
-  VictoryZoomContainer,
   VictoryChart,
   VictoryGroup,
   VictoryLegend,
-  VictoryVoronoiContainer,
   createContainer,
   VictoryAxis
 } from "victory";
@@ -33,8 +31,6 @@ const toVictoryData = (line: Line) => {
   }));
 };
 
-// const colors = ["brown", "black", "grey"];
-
 const percentiles: Array<string> = ["q99", "q50"];
 const sequences: Array<string> = ["seq-a", "seq-b"];
 
@@ -45,12 +41,6 @@ const toVictoryLegend = (
   colors: Array<string>
 ) => {
   const vals = key === "percentile" ? percentiles : sequences;
-  console.log(vals);
-  // const a = lines.map((l) => l[key]);
-  // const b = a.filter((item, index) => {
-  //   return a.indexOf(item) === index;
-  // });
-  // return b.map((p) => {
   let i = 0;
   return vals.map((p) => {
     i++;
@@ -124,17 +114,6 @@ export default function App() {
     }
   ]);
 
-  const buildAllEvents = () => {
-    const e = buildEvents(
-      "legend-percentiles",
-      percentiles,
-      "percentile",
-      0
-    ).concat(buildEvents("legend-sequences", sequences, "sequence", 0));
-    console.log(e);
-    return e;
-  };
-
   const buildEvents = (
     legend: string,
     keyList: Array<string>,
@@ -150,11 +129,8 @@ export default function App() {
           onClick: () => {
             return [
               {
-                // childName: [legend], // we don't mutate any elements directly with this, instead we modify hiddenSeries |  ["area-" + idx],
                 target: "data",
-                // eventKey: String(startingIndex + idx), // "all",
                 mutation: (props: any) => {
-                  console.log(keyName, key, startingIndex + idx);
                   let hiddenSeriesLocal =
                     keyName === "sequence"
                       ? hiddenSequence.hiddenSeries
@@ -180,31 +156,11 @@ export default function App() {
                     });
                   }
                   const hiddenKeysLocal = hiddenKeys;
-                  let hideKey = false;
                   if (!hiddenKeysLocal.delete(key)) {
                     // Was not already hidden => add to set
                     hiddenKeysLocal.add(key);
                     setHiddenKeys(hiddenKeysLocal);
-                    hideKey = true;
                   }
-                  const s = {
-                    style: {
-                      ...props.style,
-                      // fill:
-                      //   props.style &&
-                      //   (!props.style.fill || props.style.fill === "#525252")
-                      //     ? "blue"
-                      //     : "#525252",
-                      fillOpacity: hideKey ? 0.5 : 1.0
-                      // fillOpacity:
-                      //   props.style &&
-                      //   (!props.style.fillOpacity ||
-                      //     props.style.fillOpacity === 1.0)
-                      //     ? 0.5
-                      //     : 1.0
-                    }
-                  };
-                  // return s;
                   return null;
                 }
               }
