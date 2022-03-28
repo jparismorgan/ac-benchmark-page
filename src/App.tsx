@@ -182,6 +182,7 @@ export default function App() {
 
   const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
   const toggleMetric = (metric: string) => {
+    console.log(metric, selectedMetrics);
     if (selectedMetrics.includes(metric)) {
       setSelectedMetrics(selectedMetrics.filter((m) => m !== metric));
     } else {
@@ -265,16 +266,14 @@ export default function App() {
       <List component="nav">
         {[0, 1, 2, 3].map((val) => {
           return (
-            <ListItem key={val} disablePadding>
+            <ListItem key={val}>
               {/* button */}
               <ListItemText id={String(val)} primary={`Line item ${val}`} />
               {/* <Checkbox toggle checked={value > ===3} onChange={console.log(value)} label="Is this Release final?" /> */}
               <Checkbox
-                // {val === 2 ? defaultChecked : undefined}
                 value={val}
-                checked={selectedMetrics.includes(val)}
-                // onClick={toggleMetric(String(val))}
-                onChange={(e) => console.log(e, val)}
+                checked={selectedMetrics.includes(String(val))}
+                onClick={() => toggleMetric(String(val))}
               />
             </ListItem>
           );
