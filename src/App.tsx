@@ -10,6 +10,14 @@ import {
   VictoryAxis
 } from "victory";
 
+import {
+  List,
+  ListItemIcon,
+  ListItemText,
+  Checkbox,
+  ListItem
+} from "@material-ui/core";
+
 type DataPoint = {
   x: number | Date;
   y: number;
@@ -172,6 +180,15 @@ export default function App() {
 
   const VictoryZoomVoronoiContainer = createContainer("zoom", "voronoi");
 
+  const [selectedMetrics, setSelectedMetrics] = useState<string[]>([]);
+  const toggleMetric = (metric: string) => {
+    if (selectedMetrics.includes(metric)) {
+      setSelectedMetrics(selectedMetrics.filter((m) => m !== metric));
+    } else {
+      setSelectedMetrics([...selectedMetrics, metric]);
+    }
+  };
+
   return (
     <div>
       <VictoryChart
@@ -244,6 +261,25 @@ export default function App() {
           events={buildEvents("legend-sequences", sequences, "sequence")}
         />
       </VictoryChart>
+
+      <List component="nav">
+        {[0, 1, 2, 3].map((val) => {
+          return (
+            <ListItem key={val} disablePadding>
+              {/* button */}
+              <ListItemText id={String(val)} primary={`Line item ${val}`} />
+              {/* <Checkbox toggle checked={value > ===3} onChange={console.log(value)} label="Is this Release final?" /> */}
+              <Checkbox
+                // {val === 2 ? defaultChecked : undefined}
+                value={val}
+                checked={selectedMetrics.includes(val)}
+                // onClick={toggleMetric(String(val))}
+                onChange={(e) => console.log(e, val)}
+              />
+            </ListItem>
+          );
+        })}
+      </List>
     </div>
   );
 }
