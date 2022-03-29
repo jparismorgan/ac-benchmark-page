@@ -283,7 +283,6 @@ export default function App() {
               <ListItemText id={String(val)} primary={`Line item ${val}`} />
               <Checkbox
                 value={val}
-                defaultChecked
                 checked={selectedMetrics.includes(String(val))}
                 onClick={() => toggleMetric(String(val))}
               />
