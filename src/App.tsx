@@ -28,12 +28,15 @@ type Line = {
   sequence: string;
   percentile: string;
   color?: string;
+  symbol?: string;
+  strokeDasharray?: string;
   datapoints: DataPoint[];
 };
 
 const toVictoryData = (line: Line) => {
   return line.datapoints.map((dp) => ({
     name: line.name,
+    symbol: line.symbol,
     x: dp.x,
     y: dp.y
   }));
@@ -88,6 +91,7 @@ export default function App() {
       percentile: "q50",
       name: "seq-a-q50",
       color: "pink",
+      symbol: "square",
       datapoints: [
         { x: 0, y: 5 },
         { x: 1, y: 8 },
@@ -98,7 +102,9 @@ export default function App() {
       sequence: "seq-a",
       percentile: "q99",
       name: "seq-a-q99",
-      color: "red",
+      color: "pink",
+      symbol: "circle",
+      strokeDasharray: "2,2",
       datapoints: [
         { x: 0, y: 6 },
         { x: 1, y: 9 },
@@ -110,6 +116,7 @@ export default function App() {
       percentile: "q50",
       name: "seq-b-q50",
       color: "teal",
+      symbol: "square",
       datapoints: [
         { x: 0, y: 1 },
         { x: 1, y: 4 },
@@ -120,7 +127,9 @@ export default function App() {
       sequence: "seq-b",
       percentile: "q99",
       name: "seq-b-q99",
-      color: "blue",
+      color: "teal",
+      symbol: "circle",
+      strokeDasharray: "2,1",
       datapoints: [
         { x: 0, y: 2 },
         { x: 1, y: 5 },
@@ -239,11 +248,13 @@ export default function App() {
                 style={{
                   data: {
                     stroke: s.color,
-                    strokeWidth: 2
+                    strokeWidth: 2,
+                    strokeDasharray: s.strokeDasharray
                   }
                 }}
               />
               <VictoryScatter
+                labels={({ datum }) => datum.y}
                 style={{
                   data: {
                     stroke: s.color,
@@ -257,8 +268,8 @@ export default function App() {
         <VictoryLegend
           name={"legend-percentiles"}
           data={toVictoryLegend(hiddenItems.legendKeys, series, "percentile", [
-            "navy",
-            "blue"
+            "black",
+            "grey"
           ])}
           height={90}
           y={50}
